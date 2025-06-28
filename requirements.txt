@@ -1,0 +1,5 @@
+numpy
+pandas
+scikit-learn
+matplotlib
+tensorflow==2.15.0  # 或者你需要的版本
