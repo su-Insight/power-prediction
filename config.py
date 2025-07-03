@@ -4,7 +4,7 @@ import os
 DATA_DIR = './data'
 TRAIN_FILE = os.path.join(DATA_DIR, 'train_daily.csv')
 TEST_FILE = os.path.join(DATA_DIR, 'test_daily.csv')
-MODEL_DIR = './models'
+MODEL_DIR = './save_models'
 RESULT_DIR = './results'
 
 # --- General Parameters ---
