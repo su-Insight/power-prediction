@@ -1,74 +1,73 @@
 # src/predict.py
 
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import torch
 import os
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from .config import (
+from config import (
     FEATURES, TARGET_FEATURE, RESULT_DIR
 )
 
 
-def make_final_forecast(model, full_data_scaled, ground_truth_df, scaler, horizon, sequence_length, plot_save_path):
-    """
-    Generates a single forecast for the future using the last available data
-    and compares it against the ground truth.
-    """
-    print(f"--- Generating final forecast for {horizon} days ---")
+def make_prediction_and_plot(model, X_test, y_test, scaler, horizon, plot_save_path):
 
-    # 1. Prepare the input for prediction
-    # Use the last `sequence_length` days from the historical data
-    last_sequence_scaled = full_data_scaled[-sequence_length:]
-    X_predict = torch.tensor(last_sequence_scaled, dtype=torch.float32).unsqueeze(0) # Add batch dimension
+    print(f"--- 开始预测与评估: {horizon}天 ---")
 
-    # 2. Set model to evaluation mode and make a single prediction
+    # 1. Set model to evaluation mode and make predictions
     model.eval()
     with torch.no_grad():
-        prediction_scaled = model(X_predict)
+        predictions_scaled = model(X_test)
 
-    # 3. Inverse transform the prediction
-    # Reshape prediction to be 2D [horizon, 1]
-    prediction_scaled_numpy = prediction_scaled.cpu().numpy().flatten().reshape(-1, 1)
+    # Convert tensors to numpy arrays for processing
+    predictions_numpy_scaled = predictions_scaled.cpu().numpy()
+    y_test_numpy_scaled = y_test.cpu().numpy()
 
-    # Create a dummy array to perform inverse scaling
-    num_features = len(FEATURES)
-    target_idx = FEATURES.index(TARGET_FEATURE)
-    dummy_array = np.zeros((prediction_scaled_numpy.shape[0], num_features))
-    dummy_array[:, target_idx] = prediction_scaled_numpy[:, 0]
+    # 2. Inverse transform ALL predictions and actuals to their original scale
+    # This helper function will handle the entire batch of sequences
+    def inverse_transform_batch(scaled_data, scaler_obj):
+        # Flatten the data from [samples, horizon] to [samples * horizon, 1]
+        data_reshaped = scaled_data.reshape(-1, 1)
 
-    # Inverse transform and get the unscaled prediction
-    prediction_unscaled = scaler.inverse_transform(dummy_array)[:, target_idx]
+        num_features = len(FEATURES)
+        target_idx = FEATURES.index(TARGET_FEATURE)
 
-    # 4. Get the ground truth values for the forecast period
-    # Ensure the ground truth dataframe is indexed properly
-    actual_unscaled = ground_truth_df[TARGET_FEATURE].iloc[:horizon].values
+        # Create a dummy array of shape [samples * horizon, num_features]
+        dummy_array = np.zeros((data_reshaped.shape[0], num_features))
 
-    # Check for length mismatch
-    if len(prediction_unscaled) != len(actual_unscaled):
-        print(f"Warning: Length mismatch. Prediction: {len(prediction_unscaled)}, Actual: {len(actual_unscaled)}. Truncating to the shorter length.")
-        min_len = min(len(prediction_unscaled), len(actual_unscaled))
-        prediction_unscaled = prediction_unscaled[:min_len]
-        actual_unscaled = actual_unscaled[:min_len]
-        horizon = min_len
+        # Place the reshaped data into the target feature's column
+        dummy_array[:, target_idx] = data_reshaped[:, 0]
 
-    # 5. Calculate MSE and MAE on the unscaled data
-    mse = mean_squared_error(actual_unscaled, prediction_unscaled)
-    mae = mean_absolute_error(actual_unscaled, prediction_unscaled)
-    print(f"  - Evaluation on Final Forecast:")
-    print(f"    - Mean Squared Error (MSE): {mse:.4f}")
-    print(f"    - Mean Absolute Error (MAE): {mae:.4f}")
+        # Inverse transform the entire dummy array
+        unscaled_array = scaler_obj.inverse_transform(dummy_array)
 
-    # 6. Plot the forecast vs. the ground truth
+        # Return only the target feature's column, now in the original scale
+        return unscaled_array[:, target_idx]
+
+    predictions_unscaled = inverse_transform_batch(predictions_numpy_scaled, scaler)
+    y_test_unscaled = inverse_transform_batch(y_test_numpy_scaled, scaler)
+
+    # 3. Calculate MSE and MAE on the UN-SCALED (restored) data
+    mse = mean_squared_error(y_test_unscaled, predictions_unscaled)
+    mae = mean_absolute_error(y_test_unscaled, predictions_unscaled)
+    print(f"  - 评估结果 (on original-scale data):")
+    print(f"    - 均方误差 (MSE): {mse:.4f}")
+    print(f"    - 平均绝对误差 (MAE): {mae:.4f}")
+
+    # 4. For plotting, we only need the first sequence from the unscaled arrays
+    first_prediction_unscaled = predictions_unscaled[:horizon]
+    first_actual_unscaled = y_test_unscaled[:horizon]
+
+    # 5. Plotting the first prediction vs the first actual sequence
     plt.style.use('seaborn-v0_8-whitegrid')
     plt.figure(figsize=(18, 8))
+
     plot_index = range(horizon)
 
-    plt.plot(plot_index, actual_unscaled, label='Actual Future Power', color='blue', marker='o', linestyle='-')
-    plt.plot(plot_index, prediction_unscaled, label='Predicted Future Power', color='red', marker='x', linestyle='--')
-    plt.title(f'Final Power Forecast vs. Actual ({horizon} Days) - MAE: {mae:.2f}', fontsize=16)
+    plt.plot(plot_index, first_actual_unscaled, label='Actual Future Power', color='blue', marker='.')
+    plt.plot(plot_index, first_prediction_unscaled, label='Predicted Future Power', color='red', linestyle='--')
+    plt.title(f'Power Consumption Prediction vs Actual ({horizon} Days) - MAE: {mae:.2f}', fontsize=16)
     plt.xlabel('Days into the Future', fontsize=12)
     plt.ylabel('Global Active Power', fontsize=12)
     plt.legend()
@@ -76,6 +75,6 @@ def make_final_forecast(model, full_data_scaled, ground_truth_df, scaler, horizo
 
     os.makedirs(RESULT_DIR, exist_ok=True)
     plt.savefig(plot_save_path)
-    print(f"Forecast plot saved to: {plot_save_path}")
+    print(f"结果图已保存至: {plot_save_path}")
 
     return mse, mae

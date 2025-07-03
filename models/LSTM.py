@@ -1,6 +1,5 @@
 from torch import nn
 
-
 class LSTMForecast(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, output_size, dropout=0.2):
         super(LSTMForecast, self).__init__()

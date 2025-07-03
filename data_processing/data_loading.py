@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import torch
-from .config import FEATURES, TARGET_FEATURE
+
+from config import FEATURES, TARGET_FEATURE
 
 def load_data(train_path, test_path, horizon,sequence_length=90):
 

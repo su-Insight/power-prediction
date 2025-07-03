@@ -1,6 +1,5 @@
 from torch import nn
 
-
 class Autoformer(nn.Module):
     def __init__(self, input_size, output_size, hidden_size=128, num_heads=4, num_layers=2, dropout_rate=0.2):
         super(Autoformer, self).__init__()
