@@ -3,8 +3,11 @@
 import argparse
 import numpy as np
 import joblib
-from src.data_loader import load_data
-from src.model import LSTMForecast, TransformerForecast, Autoformer
+
+from data_processing.data_loading import load_data
+from models.Autoformer import Autoformer
+from models.LSTMForecast import LSTMForecast
+from models.TransformerForecast import TransformerForecast
 from src.train import train_model
 from src.predict import make_prediction_and_plot
 from config import *
