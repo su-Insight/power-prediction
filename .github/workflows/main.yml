@@ -10,7 +10,7 @@ jobs:
         horizon: [90, 365]
       fail-fast: false
       max-parallel: 3
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -25,10 +25,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        # Install any model-specific dependencies
-        if [ "${{ matrix.model }}" = "autoformer" ]; then
-          pip install git+https://github.com/thuml/autoformer.git
-        fi
+
+    - name: Clone Autoformer if needed
+      if: matrix.model == 'autoformer'
+      run: |
+        git clone https://github.com/thuml/autoformer.git external/autoformer
+        echo "PYTHONPATH=$PYTHONPATH:$(pwd)/external/autoformer" >> $GITHUB_ENV
 
     - name: Run training
       run: |
