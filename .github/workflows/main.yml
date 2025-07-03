@@ -1,22 +1,36 @@
-name: build
+name: Model Training Pipeline
 on: push
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        model: ['lstm', 'transformer', 'autoformer']
+        horizon: [90, 365]
+      fail-fast: false
+      max-parallel: 3
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python env
+    - name: Set up Python 3.12
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
+        cache: 'pip'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        # Install any model-specific dependencies
+        if [ "${{ matrix.model }}" = "autoformer" ]; then
+          pip install git+https://github.com/thuml/autoformer.git
+        fi
 
-    - name: Run scripts
+    - name: Run training
       run: |
-        python main.py --model lstm -H 90
+        echo "Running ${{ matrix.model }} model with ${{ matrix.horizon }}-day horizon"
+        python main.py --model ${{ matrix.model }} -H ${{ matrix.horizon }}
