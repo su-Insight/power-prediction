@@ -19,4 +19,4 @@ jobs:
 
     - name: Run scripts
       run: |
-        python train.py
+        python main.py --model lstm -H 90
