@@ -1,5 +1,3 @@
-# src/config.py
-
 import os
 
 # --- Path Settings ---
