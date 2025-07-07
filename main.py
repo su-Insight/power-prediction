@@ -15,13 +15,13 @@ def run_task(model_type, horizon, params, base_model_name, base_scaler_name, bas
     # 1. Create unique filenames for this specific run
     run_model_name = base_model_name.replace('.pt', f'_run{run_num}.pt')
     run_scaler_name = base_scaler_name.replace('.pkl', f'_{model_type}_run{run_num}.pkl')
-    run_plot_name = f'{base_plot_name}_{model_type}_run{run_num}.png'
+    run_data_name = f'{base_plot_name}_{model_type}_run{run_num}'
 
-    model_path = os.path.join(MODEL_DIR, run_model_name)
-    scaler_path = os.path.join(MODEL_DIR, run_scaler_name)
-    plot_path = os.path.join(RESULT_DIR, run_plot_name)
+    model_path = os.path.join(RESULT_DIR, run_model_name)
+    scaler_path = os.path.join(RESULT_DIR, run_scaler_name)
+    data_path = os.path.join(RESULT_DIR, run_data_name)
 
-    os.makedirs(MODEL_DIR, exist_ok=True)
+    os.makedirs(RESULT_DIR, exist_ok=True)
 
     # 2. Load data
     X_train, y_train, X_test, y_test, scaler = load_data(
@@ -63,7 +63,7 @@ def run_task(model_type, horizon, params, base_model_name, base_scaler_name, bas
         y_test=y_test,
         scaler=scaler,
         horizon=horizon,
-        plot_save_path=plot_path
+        data_save_path=data_path
     )
     return mse, mae
 
