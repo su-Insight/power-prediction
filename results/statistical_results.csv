@@ -1,0 +1,7 @@
+Model,Avg MAE,MAE Std,Avg MSE,MSE Std
+short_term_90_days_lstm,267.4710,15.1735,98426.2889,8382.4278
+long_term_365_days_lstm,288.6830,5.8773,145615.6377,3029.6920
+short_term_90_days_transformer,252.0632,15.1818,89549.1718,6826.0952
+long_term_365_days_transformer,286.6847,3.6461,144682.6187,2050.4003
+short_term_90_days_autoformer,264.0683,10.0276,93928.0426,4934.1667
+long_term_365_days_autoformer,289.0659,8.2788,145768.7367,4516.7157
