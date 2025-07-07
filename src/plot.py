@@ -49,7 +49,7 @@ def plot_true_vs_predicted(actual_data_path, predicted_data_path, plot_save_path
     )
     plt.plot(
         plot_index, y_predicted,
-        label='Simulated Predicted Future Power',
+        label='Predicted Future Power',
         color='red',
         linestyle='--',
         marker='x',
