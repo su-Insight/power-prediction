@@ -36,6 +36,7 @@
 python main.py --model lstm --horizon 90
 python main.py --model transformer --horizon 365
 python main.py --model autoformer --horizon 90
+```
 
 - `--model`：从 `lstm`、`transformer` 或 `autoformer` 中选择。
 - `--horizon`：设置为 `90` 表示短期预测，`365` 表示长期预测。
