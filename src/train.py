@@ -1,7 +1,9 @@
+import logging
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 import os
+
 def train_model(model, X_train, y_train, X_val, y_val, horizon, model_save_path, params):
     print(f"--- 开始训练模型: {model.__class__.__name__} for {horizon}天预测 ---")
     train_params = params['train']
@@ -19,6 +21,7 @@ def train_model(model, X_train, y_train, X_val, y_val, horizon, model_save_path,
     # 3. Training Loop
     print("开始模型训练...")
     best_val_loss = float('inf')
+    best_model_state = None
     for epoch in range(train_params['epochs']):
         model.train()
         total_train_loss = 0
@@ -48,11 +51,14 @@ def train_model(model, X_train, y_train, X_val, y_val, horizon, model_save_path,
 
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
-            os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
-            torch.save(model.state_dict(), model_save_path)
-            print(f"  -> Best model saved to {model_save_path}")
+            best_model_state = model.state_dict()
+            if model_save_path:  # 仅在 model_save_path 不为空时保存
+                os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
+                torch.save(best_model_state, model_save_path)
+                print(f"  -> Best model saved to {model_save_path}")
 
     print(f"--- 模型训练完成 ---")
-    # Return the trained model with best weights loaded
-    model.load_state_dict(torch.load(model_save_path))
+    # 加载最佳模型权重
+    if best_model_state is not None:
+        model.load_state_dict(best_model_state)
     return model

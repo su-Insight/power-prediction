@@ -25,14 +25,14 @@ LSTM_SHORT_TERM_MODEL_NAME = f'lstm_short_term_{SHORT_TERM_HORIZON}d.pt'
 LSTM_SHORT_TERM_PARAMS = {
     'model': {
         'input_size': len(FEATURES),
-        'hidden_size': 100,
-        'num_layers': 2,
-        'dropout': 0.1,
+        'hidden_size': 128,
+        'num_layers': 3,
+        'dropout': 0.05,
     },
     'train': {
-        'learning_rate': 0.0005,
-        'epochs': 50,
-        'batch_size': 16,
+        'learning_rate': 0.00001,
+        'epochs': 40,
+        'batch_size': 32,
     }
 }
 
@@ -43,14 +43,14 @@ TRANSFORMER_SHORT_TERM_PARAMS = {
         'input_size': len(FEATURES),
         'd_model': 64,
         'nhead': 4,
-        'num_encoder_layers': 3,
+        'num_encoder_layers': 4,
         'dim_feedforward': 128,
-        'dropout': 0.1
+        'dropout': 0.2
     },
     'train': {
-        'learning_rate': 0.0005,
+        'learning_rate': 0.01,
         'epochs': 40,
-        'batch_size': 32,
+        'batch_size': 16,
     }
 }
 
@@ -82,14 +82,14 @@ LSTM_LONG_TERM_MODEL_NAME = f'lstm_long_term_{LONG_TERM_HORIZON}d.pt'
 LSTM_LONG_TERM_PARAMS = {
     'model': {
         'input_size': len(FEATURES),
-        'hidden_size': 150,
+        'hidden_size': 64,
         'num_layers': 2,
         'dropout': 0.2,
     },
     'train': {
         'learning_rate': 0.0001,
-        'epochs': 80,
-        'batch_size': 32,
+        'epochs': 40,
+        'batch_size': 16,
     }
 }
 
